@@ -1,4 +1,4 @@
-import { JobCardData } from "@/components/JobCard";
+import { JobCardData } from "@/types/job.types";
 import {
   BriefcaseBusinessIcon,
   DiamondPlusIcon,
