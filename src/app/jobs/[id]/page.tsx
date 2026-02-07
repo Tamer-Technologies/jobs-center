@@ -23,6 +23,8 @@ interface JobDetailsProps extends ComponentProps<"div"> {
 const JobDetails = async ({ params }: JobDetailsProps) => {
   const jobId = (await params).id;
 
+  // fetch where the object has the same id in Jobs object
+
   const data = jobsDetailsData.find(
     (item) => String(item.id) === String(jobId),
   );

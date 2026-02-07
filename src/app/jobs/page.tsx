@@ -1,9 +1,6 @@
-import JobCard from "@/components/JobCard";
+import JobCardList from "@/components/JobCardList";
 import { Button } from "@/components/ui/button";
-import {
-  jobsCardsData,
-  jobsPageContent,
-} from "@/constants/pagesContent/jobsContent";
+import { jobsPageContent } from "@/constants/pagesContent/jobsContent";
 import Link from "next/link";
 
 const Jobs = () => {
@@ -21,16 +18,7 @@ const Jobs = () => {
           <jobsPageContent.cta.descriptiveIcon />
         </Link>
       </Button>
-      {jobsCardsData.map((item) => (
-        <Link href={`/jobs/${item.id}`} className="w-full group" key={item.id}>
-          <JobCard
-            jobTitle={item.jobTitle}
-            status={item.status}
-            companyName={item.companyName}
-            className="group-hover:-translate-y-3 transition ease-in-out duration-500"
-          />
-        </Link>
-      ))}
+      <JobCardList />
     </div>
   );
 };
