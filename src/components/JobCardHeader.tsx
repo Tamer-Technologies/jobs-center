@@ -1,20 +1,36 @@
 import { ComponentProps } from "react";
 import { CardHeader, CardTitle } from "./ui/card";
-import { StateOptions } from "./JobCard";
 import { cn } from "@/lib/utils";
+import { JobStatus, StateOptions } from "@/types/job.types";
+import { BriefcaseBusinessIcon, Clock4, Zap } from "lucide-react";
 
 interface JobCardHeader extends ComponentProps<typeof CardHeader> {
   jobTitle: string;
-  status: string;
-  stateOptions: StateOptions;
+  status: JobStatus;
 }
+
+const iconList: Record<JobStatus, StateOptions> = {
+  Active: {
+    styles: "text-status-active",
+    icon: Zap,
+  },
+  Pending: {
+    styles: "text-status-pending",
+    icon: Clock4,
+  },
+  "On Hold": {
+    styles: "text-status-on-hold",
+    icon: BriefcaseBusinessIcon,
+  },
+};
 
 const JobCardHeader = ({
   jobTitle,
   status,
-  stateOptions,
+  children,
   ...props
 }: JobCardHeader) => {
+  const stateOptions = iconList[status];
   return (
     <CardHeader className="grid-cols-[1fr_auto] items-center" {...props}>
       <CardTitle className="md:text-2xl">{jobTitle}</CardTitle>
@@ -27,6 +43,7 @@ const JobCardHeader = ({
         {status}
         <stateOptions.icon />
       </p>
+      {children}
     </CardHeader>
   );
 };

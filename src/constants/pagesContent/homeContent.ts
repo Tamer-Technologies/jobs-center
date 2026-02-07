@@ -1,4 +1,4 @@
-type HomePageData = {
+type HomePageContent = {
   titles: string[];
   description: string;
   cta: {
@@ -7,7 +7,7 @@ type HomePageData = {
   };
 };
 
-export const homePageData: HomePageData = {
+export const homePageContent: HomePageContent = {
   titles: ["Trace Your Jobs", "Organize yourself", "Track Your Progress"],
   description: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi ad
         repellendus tenetur officiis, numquam ratione obcaecati ducimus, aperiam
