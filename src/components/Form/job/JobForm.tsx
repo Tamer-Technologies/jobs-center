@@ -3,7 +3,7 @@
 import { Job } from "@/types/job.types";
 import * as JOB_CONSTANTS from "@/constants/job.constants";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ComponentProps } from "react";
+import { ComponentProps, useState, useCallback, useMemo } from "react";
 import { Resolver, useForm } from "react-hook-form";
 import z from "zod";
 import { formSchema } from "@/schemas/job.schema";
@@ -14,6 +14,10 @@ import FormSelect from "../FormSelect";
 import { FieldGroup, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Separator } from "@/components/ui/separator";
 import FormSwitch from "../FormSwitch";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { X, Plus } from "lucide-react";
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -50,6 +54,35 @@ const JobForm = ({ job, onUpdate, ...props }: JobForm) => {
 
   const hasSalary = form.watch("hasSalary");
   const salaryMode = form.watch("salaryMode");
+  const watchedTechStack = form.watch("techStack");
+  const techStack = useMemo(() => watchedTechStack || [], [watchedTechStack]);
+
+  const [tagInput, setTagInput] = useState("");
+
+  const handleAddTag = useCallback(() => {
+    const trimmedTag = tagInput.trim();
+    if (trimmedTag !== "" && !techStack.includes(trimmedTag)) {
+      form.setValue("techStack", [...techStack, trimmedTag], {
+        shouldValidate: true,
+      });
+      setTagInput("");
+    }
+  }, [tagInput, techStack, form]);
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    form.setValue(
+      "techStack",
+      techStack.filter((item) => item !== tagToRemove),
+      { shouldValidate: true },
+    );
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     const refinedData: Omit<Job, "id"> = {
@@ -63,14 +96,11 @@ const JobForm = ({ job, onUpdate, ...props }: JobForm) => {
       employmentType: data.employmentType,
       workMode: data.workMode,
       experienceLevel: data.experienceLevel,
+      techStack: data.techStack,
     };
 
-    if (data.location && data.location.trim() !== "") {
+    if (data.location?.trim()) {
       refinedData.location = data.location;
-    }
-
-    if (data.techStack && data.techStack.length > 0) {
-      refinedData.techStack = data.techStack;
     }
 
     if (data.hasSalary) {
@@ -98,36 +128,79 @@ const JobForm = ({ job, onUpdate, ...props }: JobForm) => {
       jobsList = jobsList.map((item) =>
         item.id === job.id ? updatedJob : item,
       );
-
-      // await fetch(`/api/jobs/${job.id}`, {
-      //   method: "PATCH",
-      //   body: JSON.stringify(refinedData),
-      // });
     } else {
       const newJob = { ...refinedData, id: crypto.randomUUID() };
       jobsList.push(newJob);
-
-      // await fetch(`/api/jobs`, {
-      //   method: "POST",
-      //   body: JSON.stringify(refinedData),
-      // });
     }
 
     localStorage.setItem("jobs", JSON.stringify(jobsList));
     if (onUpdate) onUpdate();
-    console.log(data);
   }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} {...props}>
       <FieldGroup>
         <FormInput control={form.control} name="title" label="Job Title*" />
+
         <FormTextArea
           control={form.control}
           name="description"
           label="Description*"
           description="Provide details about the Job."
         />
+
+        <FieldSet>
+          <FieldLegend>Tech Stack</FieldLegend>
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="skill"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleAddTag}
+                className="shrink-0"
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {techStack.length > 0 ? (
+                techStack.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="pl-3 pr-1 py-1 flex items-center gap-1 group"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="p-0.5 rounded-full hover:bg-destructive hover:text-background transition-colors"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </Badge>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No technologies added.
+                </p>
+              )}
+            </div>
+            {form.formState.errors.techStack && (
+              <p className="text-destructive text-xs font-medium">
+                {form.formState.errors.techStack.message}
+              </p>
+            )}
+          </div>
+        </FieldSet>
 
         <FormInput
           control={form.control}
@@ -149,7 +222,6 @@ const JobForm = ({ job, onUpdate, ...props }: JobForm) => {
         <FieldSet>
           <FieldLegend>Company</FieldLegend>
           <FormInput control={form.control} name="companyName" label="Name*" />
-
           <FormSelect
             control={form.control}
             name="companyType"
